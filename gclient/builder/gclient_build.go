@@ -27,7 +27,7 @@ func GenerateClient(
 		return err
 	}
 
-	outputPath := fmt.Sprintf("/output/%s", outputFile)
+	outputPath := fmt.Sprintf("/tmp/output/%s", outputFile)
 	tokenOutputPath := outputPath + ".token"
 
 	tokenFile, err := os.Create(tokenOutputPath)
@@ -75,6 +75,8 @@ func GenerateClient(
 		if platform == "win" {
 			env = append(env, "CC=x86_64-w64-mingw32-gcc")
 		}
+	} else if arch == "arm64" {
+		env = append(env, "GOARCH=arm64")
 	} else {
 		log.Fatal("[!] Invalid architecture: %s", arch)
 	}
@@ -126,7 +128,7 @@ func main() {
 
 	platforms := []string{"win", "mac", "linux"}
 	bintypes := []string{"exe", "lib"}
-	archs := []string{"x86", "x64"}
+	archs := []string{"x86", "x64", "arm64"}
 
 	if !slices.Contains(platforms, *platform) {
 		fmt.Println(("[!] Invalid platform provided"))

@@ -1,22 +1,16 @@
-FROM golang:1.20.3
+FROM swr.cn-south-1.myhuaweicloud.com/bonc/debian:golang_0424
 
 WORKDIR /go/src/gTunnel
-ENV PATH=$PATH:/protoc/bin:$GOPATH/bin
+ENV PATH=$PATH:/protoc/bin
 
-# We need unzip to install protoc
-RUN apt update && apt install -y \
-    unzip \
-    gcc-mingw-w64-i686 \
-    gcc-mingw-w64-x86-64 \
-    gcc-multilib
+RUN go version && apt-get update && apt install -y unzip 
 
 # Install protoc and all dependencies
-#RUN go install google.golang.org/grpc/cmd/proto@latest
-RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v22.3/protoc-22.3-linux-x86_64.zip &&\
-unzip protoc-22.3-linux-x86_64.zip -d /protoc &&\
-rm protoc-22.3-linux-x86_64.zip &&\
-go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28 &&\
-go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
+RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v25.7/protoc-25.7-linux-aarch_64.zip &&\
+    unzip protoc-25.7-linux-aarch_64.zip -d /protoc &&\
+    rm protoc-25.7-linux-aarch_64.zip &&\
+    go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.6 &&\
+    go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
 # Copy over all gtunnel files and directories
 COPY go.mod .
@@ -32,5 +26,5 @@ RUN go get -d -v ./... && go install -v ./...
 
 # Build client builder
 RUN mkdir /output
-RUN go build -o gclient/gclient_build gclient/builder/gclient_build.go
+RUN CGO_ENABLED=0 go build -a -ldflags '-extldflags "-static"' -o gclient/gclient_build gclient/builder/gclient_build.go
 ENTRYPOINT ["gclient/gclient_build"]

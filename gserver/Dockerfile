@@ -1,4 +1,4 @@
-FROM golang:1.20.3 AS gtunbase
+FROM golang:1.24.2 AS gtunbase
 
 WORKDIR /go/src/gTunnel
 ENV PATH=$PATH:/protoc/bin:$GOPATH/bin
@@ -8,11 +8,11 @@ RUN apt update && apt install -y \
 	unzip
 
 # Install protoc and all dependencies
-RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v22.3/protoc-22.3-linux-x86_64.zip &&\
-unzip protoc-22.3-linux-x86_64.zip -d /protoc &&\
-rm protoc-22.3-linux-x86_64.zip &&\
-go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28 &&\
-go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
+RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v25.7/protoc-25.7-linux-aarch_64.zip &&\
+unzip protoc-25.7-linux-aarch_64.zip -d /protoc &&\
+rm protoc-25.7-linux-aarch_64.zip &&\
+go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.6 &&\
+go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
 # Copy over all gtunnel files and directories
 COPY go.mod .
@@ -41,7 +41,7 @@ RUN apt install -y openssl
 RUN mkdir tls && openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes -out tls/cert -subj "/C=/ST=/L=/O=/CN=" -keyout tls/key
 RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o gserver/gserver gserver/gServer.go
 
-FROM alpine:3.7 AS gtunserver-prod
+FROM alpine:3.21 AS gtunserver-prod
 RUN apk --update add redis
 COPY --from=gtunserver-build /go/src/gTunnel/gserver/gserver .
 CMD ./gserver
